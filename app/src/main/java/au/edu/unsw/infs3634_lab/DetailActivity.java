@@ -8,12 +8,15 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
+
+import au.edu.unsw.infs3634_lab.api.Crypto;
 
 public class DetailActivity extends AppCompatActivity {
 
-    private TextView mText;
-    private Button mButton;
+    private TextView mName, mSymbol, mRank, mValue, mChangeHr, mChangeDay, mChangeWeek, mMarket, mVolume;
+    private ImageView mSearch;
     private final String TAG = "DetailActivity";
 
     @Override
@@ -21,29 +24,44 @@ public class DetailActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_detail);
 
-        // setTitle() changes the title/heading of the header
-        setTitle("Detail Activity");
-
-        // Retrieve intent from MainActivity
         Intent intent = getIntent();
-        String msg = intent.getStringExtra("msg");
-        Log.d(TAG, msg);
+        String symbol = intent.getStringExtra("symbol");
+        Log.d(TAG, "Symbol is " + symbol);
 
-        // Link to TextView component in XML and set text to msg
-        mText = findViewById(R.id.tvText);
-        mText.setText(msg);
+        mName = findViewById(R.id.tvName);
+        mSymbol = findViewById(R.id.tvSymbol);
+        mRank = findViewById(R.id.tvRank);
+        mValue = findViewById(R.id.tvValue);
+        mChangeHr = findViewById(R.id.tvChangeHour);
+        mChangeDay = findViewById(R.id.tvChangeDay);
+        mChangeWeek = findViewById(R.id.tvChangeWeek);
+        mMarket = findViewById(R.id.tvMarketCap);
+        mVolume = findViewById(R.id.tvVolume);
+        mSearch = findViewById(R.id.ivSearch);
 
-        mButton = findViewById(R.id.btnDetail);
-        mButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                launchDetailButton();
-            }
-        });
+        if (intent.hasExtra("symbol")) {
+            Crypto crypto = Crypto.findCrypto(symbol);
+            mName.setText(crypto.getName());
+            mSymbol.setText(crypto.getSymbol());
+            mRank.setText(String.valueOf(crypto.getRank()));
+            mValue.setText(crypto.getPriceUsd());
+            mChangeHr.setText(crypto.getPercentChange1h());
+            mChangeDay.setText(crypto.getPercentChange24h());
+            mChangeWeek.setText(crypto.getPercentChange7d());
+            mMarket.setText(crypto.getMarketCapUsd());
+            mVolume.setText(String.valueOf(crypto.getVolume24()));
+
+            mSearch.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    launchCryptoSearch(symbol);
+                }
+            });
+        }
     }
 
-    protected void launchDetailButton() {
-        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.youtube.com/watch?v=dQw4w9WgXcQ"));
+    protected void launchCryptoSearch(String symbol) {
+        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.google.com/search?q=" + symbol));
         startActivity(intent);
     }
 }

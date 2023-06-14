@@ -26,15 +26,15 @@ public class MainActivity extends AppCompatActivity {
         mLaunch.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                onLaunchDetailActivity();
+                launchDetailActivity("BNB");
             }
         });
     }
 
-    protected void onLaunchDetailActivity() {
-        Log.d(TAG, "onLaunchDetailActivity working");
+    protected void launchDetailActivity(String msg) {
+        Log.d(TAG, "launchDetailActivity working");
         Intent intent = new Intent(this, DetailActivity.class);
-        intent.putExtra("msg", MESSAGE);
+        intent.putExtra("symbol", msg);
         startActivity(intent);
     }
 }
