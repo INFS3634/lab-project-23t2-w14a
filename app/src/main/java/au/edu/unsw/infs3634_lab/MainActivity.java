@@ -1,6 +1,8 @@
 package au.edu.unsw.infs3634_lab;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -8,9 +10,15 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 
-public class MainActivity extends AppCompatActivity {
+import au.edu.unsw.infs3634_lab.api.Crypto;
+import au.edu.unsw.infs3634_lab.recycler_view.CryptoAdapter;
+import au.edu.unsw.infs3634_lab.recycler_view.RecyclerViewClickListener;
 
-    private Button mLaunch;
+public class MainActivity extends AppCompatActivity implements RecyclerViewClickListener {
+
+    private RecyclerView recyclerView;
+    private RecyclerView.LayoutManager layoutManager;
+    private CryptoAdapter adapter;
 
     private final String TAG = "MainActivity";
     private final String MESSAGE = "Message from MainActivity";
@@ -20,21 +28,18 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // findViewById(R.id.<id in XML file>)
-        mLaunch = findViewById(R.id.btnLaunch);
-
-        mLaunch.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                launchDetailActivity("BNB");
-            }
-        });
+        recyclerView = findViewById(R.id.rvList);
+        layoutManager = new LinearLayoutManager(this);
+        adapter = new CryptoAdapter(Crypto.getCryptoCurrencies(), this);
+        recyclerView.setLayoutManager(layoutManager);
+        recyclerView.setAdapter(adapter);
     }
 
-    protected void launchDetailActivity(String msg) {
+    @Override
+    public void onClickRow(String symbol) {
         Log.d(TAG, "launchDetailActivity working");
         Intent intent = new Intent(this, DetailActivity.class);
-        intent.putExtra("symbol", msg);
+        intent.putExtra("symbol", symbol);
         startActivity(intent);
     }
 }
