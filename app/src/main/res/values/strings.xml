@@ -2,4 +2,8 @@
     <string name="app_name">CryptoCurrency</string>
     <string name="welcome_msg">Hello World!</string>
     <string name="launch_detail">Launch Detail Activity</string>
+    <string name="action_search">Search</string>
+    <string name="action_sort">Sort</string>
+    <string name="sort_name">Name</string>
+    <string name="sort_value">Value</string>
 </resources>
