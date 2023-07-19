@@ -14,7 +14,13 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.SearchView;
 
+import com.google.gson.Gson;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import au.edu.unsw.infs3634_lab.api.Crypto;
+import au.edu.unsw.infs3634_lab.api.Response;
 import au.edu.unsw.infs3634_lab.recycler_view.CryptoAdapter;
 import au.edu.unsw.infs3634_lab.recycler_view.RecyclerViewClickListener;
 
@@ -34,7 +40,12 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewClick
 
         recyclerView = findViewById(R.id.rvList);
         layoutManager = new LinearLayoutManager(this);
-        adapter = new CryptoAdapter(Crypto.getCryptoCurrencies(), this);
+
+        Gson gson = new Gson();
+        Response response = gson.fromJson(Response.jsonResponse, Response.class);
+        List<Crypto> currencies = response.getData();
+
+        adapter = new CryptoAdapter((ArrayList<Crypto>) currencies, this);
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setAdapter(adapter);
     }
