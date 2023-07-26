@@ -11,7 +11,15 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import java.util.ArrayList;
+
 import au.edu.unsw.infs3634_lab.api.Crypto;
+import au.edu.unsw.infs3634_lab.api.CryptoService;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 public class DetailActivity extends AppCompatActivity {
 
@@ -40,23 +48,63 @@ public class DetailActivity extends AppCompatActivity {
         mSearch = findViewById(R.id.ivSearch);
 
         if (intent.hasExtra("symbol")) {
-            Crypto crypto = Crypto.findCrypto(symbol);
-            mName.setText(crypto.getName());
-            mSymbol.setText(crypto.getSymbol());
-            mRank.setText(String.valueOf(crypto.getRank()));
-            mValue.setText(crypto.getPriceUsd());
-            mChangeHr.setText(crypto.getPercentChange1h());
-            mChangeDay.setText(crypto.getPercentChange24h());
-            mChangeWeek.setText(crypto.getPercentChange7d());
-            mMarket.setText(crypto.getMarketCapUsd());
-            mVolume.setText(String.valueOf(crypto.getVolume24()));
+            Retrofit retrofit = new Retrofit.Builder()
+                    .baseUrl("https://api.coinlore.net/")
+                    .addConverterFactory(GsonConverterFactory.create())
+                    .build();
 
-            mSearch.setOnClickListener(new View.OnClickListener() {
+            CryptoService service = retrofit.create(CryptoService.class);
+            Call<ArrayList<Crypto>> responseCall = service.getCrypto(Integer.valueOf(symbol));
+
+            responseCall.enqueue(new Callback<ArrayList<Crypto>>() {
                 @Override
-                public void onClick(View view) {
-                    launchCryptoSearch(symbol);
+                public void onResponse(Call<ArrayList<Crypto>> call, Response<ArrayList<Crypto>> response) {
+                    Log.d(TAG, "API Call Successful!" + " URL=" + call.request().url().toString());
+                    Crypto crypto = response.body().get(0);
+                    if (crypto != null) {
+                        // Update UXUI
+                        mName.setText(crypto.getName());
+                        mSymbol.setText(crypto.getSymbol());
+                        mRank.setText(String.valueOf(crypto.getRank()));
+                        mValue.setText(crypto.getPriceUsd());
+                        mChangeHr.setText(crypto.getPercentChange1h());
+                        mChangeDay.setText(crypto.getPercentChange24h());
+                        mChangeWeek.setText(crypto.getPercentChange7d());
+                        mMarket.setText(crypto.getMarketCapUsd());
+                        mVolume.setText(String.valueOf(crypto.getVolume24()));
+
+                        mSearch.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                launchCryptoSearch(symbol);
+                            }
+                        });
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<ArrayList<Crypto>> call, Throwable t) {
+                    Log.d(TAG, "API Call Failure." + " URL=" + call.request().url().toString());
                 }
             });
+
+//            Crypto crypto = Crypto.findCrypto(symbol);
+//            mName.setText(crypto.getName());
+//            mSymbol.setText(crypto.getSymbol());
+//            mRank.setText(String.valueOf(crypto.getRank()));
+//            mValue.setText(crypto.getPriceUsd());
+//            mChangeHr.setText(crypto.getPercentChange1h());
+//            mChangeDay.setText(crypto.getPercentChange24h());
+//            mChangeWeek.setText(crypto.getPercentChange7d());
+//            mMarket.setText(crypto.getMarketCapUsd());
+//            mVolume.setText(String.valueOf(crypto.getVolume24()));
+//
+//            mSearch.setOnClickListener(new View.OnClickListener() {
+//                @Override
+//                public void onClick(View view) {
+//                    launchCryptoSearch(symbol);
+//                }
+//            });
         }
     }
 
