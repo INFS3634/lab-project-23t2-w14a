@@ -3,6 +3,7 @@ package au.edu.unsw.infs3634_lab;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.room.Room;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -18,7 +19,9 @@ import com.google.gson.Gson;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executors;
 
+import au.edu.unsw.infs3634_lab.DB.CryptoDatabase;
 import au.edu.unsw.infs3634_lab.api.Crypto;
 import au.edu.unsw.infs3634_lab.api.CryptoService;
 import au.edu.unsw.infs3634_lab.api.Response;
@@ -34,6 +37,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewClick
     private RecyclerView recyclerView;
     private RecyclerView.LayoutManager layoutManager;
     private CryptoAdapter adapter;
+    private CryptoDatabase database;
 
     private final String TAG = "MainActivity";
     private final String MESSAGE = "Message from MainActivity";
@@ -52,6 +56,16 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewClick
 
         adapter = new CryptoAdapter((ArrayList<Crypto>) currencies, this);
 
+        database = Room.databaseBuilder(getApplicationContext(), CryptoDatabase.class, "myDB").build();
+        Executors.newSingleThreadExecutor().execute(new Runnable() {
+            @Override
+            public void run() {
+                List<Crypto> cryptos = database.cryptoDao().getCryptos();
+                adapter.setData(cryptos);
+                adapter.sortList(CryptoAdapter.SORT_METHOD_NAME);
+            }
+        });
+
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl("https://api.coinlore.net/")
                 .addConverterFactory(GsonConverterFactory.create())
@@ -66,7 +80,15 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewClick
                 Log.d(TAG, "API call successful");
                 List<Crypto> cryptos = response.body().getData();
                 adapter.setData(cryptos);
-                adapter.sortList(CryptoAdapter.SORT_METHOD_VALUE);
+                adapter.sortList(CryptoAdapter.SORT_METHOD_NAME);
+
+                Executors.newSingleThreadExecutor().execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        database.cryptoDao().deleteAll(database.cryptoDao().getCryptos().toArray(new Crypto[0]));
+                        database.cryptoDao().insertAll(cryptos.toArray(new Crypto[0]));
+                    }
+                });
             }
 
             @Override

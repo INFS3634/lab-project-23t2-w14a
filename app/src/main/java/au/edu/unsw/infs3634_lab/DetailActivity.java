@@ -1,6 +1,7 @@
 package au.edu.unsw.infs3634_lab;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.room.Room;
 
 import android.content.Intent;
 import android.net.Uri;
@@ -12,7 +13,9 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.concurrent.Executors;
 
+import au.edu.unsw.infs3634_lab.DB.CryptoDatabase;
 import au.edu.unsw.infs3634_lab.api.Crypto;
 import au.edu.unsw.infs3634_lab.api.CryptoService;
 import retrofit2.Call;
@@ -25,6 +28,8 @@ public class DetailActivity extends AppCompatActivity {
 
     private TextView mName, mSymbol, mRank, mValue, mChangeHr, mChangeDay, mChangeWeek, mMarket, mVolume;
     private ImageView mSearch;
+    private CryptoDatabase database;
+
     private final String TAG = "DetailActivity";
 
     @Override
@@ -48,19 +53,11 @@ public class DetailActivity extends AppCompatActivity {
         mSearch = findViewById(R.id.ivSearch);
 
         if (intent.hasExtra("symbol")) {
-            Retrofit retrofit = new Retrofit.Builder()
-                    .baseUrl("https://api.coinlore.net/")
-                    .addConverterFactory(GsonConverterFactory.create())
-                    .build();
-
-            CryptoService service = retrofit.create(CryptoService.class);
-            Call<ArrayList<Crypto>> responseCall = service.getCrypto(Integer.valueOf(symbol));
-
-            responseCall.enqueue(new Callback<ArrayList<Crypto>>() {
+            database = Room.databaseBuilder(getApplicationContext(), CryptoDatabase.class, "myDB").build();
+            Executors.newSingleThreadExecutor().execute(new Runnable() {
                 @Override
-                public void onResponse(Call<ArrayList<Crypto>> call, Response<ArrayList<Crypto>> response) {
-                    Log.d(TAG, "API Call Successful!" + " URL=" + call.request().url().toString());
-                    Crypto crypto = response.body().get(0);
+                public void run() {
+                    Crypto crypto = database.cryptoDao().getCrypto(symbol);
                     if (crypto != null) {
                         // Update UXUI
                         mName.setText(crypto.getName());
@@ -81,30 +78,7 @@ public class DetailActivity extends AppCompatActivity {
                         });
                     }
                 }
-
-                @Override
-                public void onFailure(Call<ArrayList<Crypto>> call, Throwable t) {
-                    Log.d(TAG, "API Call Failure." + " URL=" + call.request().url().toString());
-                }
             });
-
-//            Crypto crypto = Crypto.findCrypto(symbol);
-//            mName.setText(crypto.getName());
-//            mSymbol.setText(crypto.getSymbol());
-//            mRank.setText(String.valueOf(crypto.getRank()));
-//            mValue.setText(crypto.getPriceUsd());
-//            mChangeHr.setText(crypto.getPercentChange1h());
-//            mChangeDay.setText(crypto.getPercentChange24h());
-//            mChangeWeek.setText(crypto.getPercentChange7d());
-//            mMarket.setText(crypto.getMarketCapUsd());
-//            mVolume.setText(String.valueOf(crypto.getVolume24()));
-//
-//            mSearch.setOnClickListener(new View.OnClickListener() {
-//                @Override
-//                public void onClick(View view) {
-//                    launchCryptoSearch(symbol);
-//                }
-//            });
         }
     }
 
